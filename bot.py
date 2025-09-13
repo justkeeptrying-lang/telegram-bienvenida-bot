@@ -14,8 +14,8 @@ from telegram.ext import (
 logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s | %(message)s", level=logging.INFO)
 log = logging.getLogger("mundovapo-bot")
 
-# ===== TU CONFIG (pega tu TOKEN NUEVO aquí) =====
-TOKEN = "8375588470:AAHM8HX5_Z0wq4qHEglmB9sJ6el3DTy5dEM"
+# ===== TU CONFIG (usa tu token NUEVO) =====
+TOKEN = "PEGA_AQUI_EL_TOKEN_NUEVO"
 CHANNEL_URL = "https://t.me/+jS_YKiiHgcw3OTRh"
 GROUP_URL   = "https://t.me/+kL7eSPE27805ZGRh"
 SORTEO_URL  = "https://www.mundovapo.cl"
@@ -44,14 +44,14 @@ def kb_faq_menu():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     nombre = update.effective_user.first_name or "amig@"
     mensaje = (
-        f"👋 ¡Bienvenid@, {nombre}!<br><br>"
-        "Nos alegra mucho tenerte por aquí 🌿<br>"
+        f"👋 ¡Bienvenid@, {nombre}!\n\n"
+        "Nos alegra mucho tenerte por aquí 🌿\n"
         "En plataformas como Instagram es muy difícil mantener una cuenta dedicada a vaporizadores, "
-        "por eso decidimos crear esta comunidad exclusiva para quienes confían en nosotros 💚<br><br>"
-        "📣 <b>En el canal</b> podrás estar al tanto de:<br>"
-        "— Nuevos lanzamientos<br>— Descuentos especiales<br>— Sorteos mensuales<br>— Y más<br><br>"
-        "💬 <b>En el chat</b> puedes resolver dudas y participar en una comunidad respetuosa (+18, sin spam).<br><br>"
-        "Gracias por tu compra 🤝 Ya estás participando en el sorteo mensual. "
+        "por eso decidimos crear esta comunidad exclusiva para quienes confían en nosotros 💚\n\n"
+        "📣 <b>En el canal</b> podrás estar al tanto de:\n"
+        "— Nuevos lanzamientos\n— Descuentos especiales\n— Sorteos mensuales\n— Y más\n\n"
+        "💬 <b>En el chat</b> puedes resolver dudas y participar en una comunidad respetuosa (+18, sin spam).\n\n"
+        "Gracias por tu compra 🤝 Ya estás participando en el sorteo mensual.\n"
         "Revisa las bases y formulario en el enlace 👇"
     )
     await update.message.reply_text(
@@ -61,28 +61,28 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cq = update.callback_query
-    await cq.answer()  # quita el spinner
+    await cq.answer()
     data = cq.data or "faq_menu"
 
     if data == "faq_menu":
-        texto = "❓ <b>Preguntas frecuentes</b><br><br>Selecciona una categoría:"
+        texto = "❓ <b>Preguntas frecuentes</b>\n\nSelecciona una categoría:"
         await cq.edit_message_text(texto, reply_markup=kb_faq_menu(),
                                    disable_web_page_preview=True, parse_mode=ParseMode.HTML)
         return
 
     if data == "faq_envios":
         texto = (
-            "✈️ <b>Envíos</b><br><br>"
-            "Envíos a todo Chile por courier. Despacho en máximo 48 h hábiles.<br>"
-            "Al enviar, te llegará el tracking por correo.<br><br>"
+            "✈️ <b>Envíos</b>\n\n"
+            "Envíos a todo Chile por courier. Despacho en máximo 48 h hábiles.\n"
+            "Al enviar, te llegará el tracking por correo.\n\n"
             f"📩 ¿No recibiste el tracking? Escríbenos por WhatsApp: {WHATSAPP_TXT}"
         )
     elif data == "faq_garantias":
         texto = (
-            "🛠️ <b>Garantías</b><br><br>"
-            "Cada artículo tiene garantía original del fabricante (ver descripción del producto).<br><br>"
-            "No cubre daños por mal uso. Para evaluación, completa el formulario y espera respuesta (≤ 48 h hábiles):<br>"
-            f"🔗 <a href=\"{FORM_URL}\">Formulario de garantía</a><br><br>"
+            "🛠️ <b>Garantías</b>\n\n"
+            "Cada artículo tiene garantía original del fabricante (ver descripción del producto).\n\n"
+            "No cubre daños por mal uso. Para evaluación, completa el formulario y espera respuesta (≤ 48 h hábiles):\n"
+            f"🔗 <a href=\"{FORM_URL}\">Formulario de garantía</a>\n\n"
             "📬 Soporte: <a href=\"mailto:soporte@mundovapo.cl\">soporte@mundovapo.cl</a> o WhatsApp."
         )
     else:
@@ -100,6 +100,6 @@ if __name__ == "__main__":
     application = ApplicationBuilder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(faq_router, pattern="^faq"))
-    # Ejecuta polling y borra webhook/updates previos automáticamente:
+    # Ejecuta polling y limpia webhook/updates previos:
     application.run_polling(drop_pending_updates=True)
 
