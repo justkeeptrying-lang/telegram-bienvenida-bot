@@ -15,12 +15,23 @@ CHANNEL_URL = "https://t.me/+jS_YKiiHgcw3OTRh"   # Puedes usar enlace de invitac
 GROUP_URL   = "https://t.me/+kL7eSPE27805ZGRh"    # Puedes usar enlace de invitación o @usuario si es público
 
 WELCOME = (
-    "👋 ¡Bienvenid@!\n"
-    "Gracias por llegar por nuestro QR.\n\n"
-    "📣 Canal con novedades y descuentos\n"
-    "💬 Chat para dudas y comunidad\n\n"
-    "Elige una opción:"
+    "👋 ¡Bienvenid@!\n\n"
+    "Nos alegra mucho tenerte por aquí 🌿\n"
+    "En plataformas como Instagram es muy difícil mantener una cuenta dedicada a vaporizadores, "
+    "por eso decidimos crear esta comunidad exclusiva para quienes confían en nosotros 💚\n\n"
+    "📣 En el canal podrás estar al tanto de:\n"
+    "— Nuevos lanzamientos\n"
+    "— Descuentos especiales\n"
+    "— Sorteos mensuales\n"
+    "— Y muchas sorpresas más\n\n"
+    "💬 En el chat puedes:\n"
+    "— Resolver tus dudas\n"
+    "— Compartir experiencias con otros vapeadores\n"
+    "— Participar de una comunidad respetuosa, solo para mayores de 18 años y libre de spam\n\n"
+    "Gracias por tu compra y por ser parte de este espacio 🤝\n"
+    "¡Esperamos que disfrutes tu estadía!"
 )
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Soporta deep-links: t.me/TU_BOT?start=algo  -> context.args = ['algo']
