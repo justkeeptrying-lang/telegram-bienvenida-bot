@@ -18,12 +18,12 @@ logging.basicConfig(
 log = logging.getLogger("mundovapo-bot")
 
 # ===== CONFIGURA AQUÍ =====
-TOKEN = "8375588470:AAHuxxlHvHeDcnAYbs5pI39aZoqySIFUDaI"
-CHANNEL_URL = "https://t.me/+jS_YKiiHgcw3OTRh"
-GROUP_URL   = "https://t.me/+kL7eSPE27805ZGRh"
+TOKEN = "PEGA_AQUI_TU_TOKEN_DE_BOTFATHER"
+CHANNEL_URL = "https://t.me/TU_ENLACE_DE_CANAL"
+GROUP_URL   = "https://t.me/TU_ENLACE_DE_CHAT"
 SORTEO_URL  = "https://www.mundovapo.cl"
 FORM_URL    = "https://docs.google.com/forms/d/e/1FAIpQLSct9QIex5u95sdnaJdXDC4LeB-WBlcdhE7GXoUVh3YvTh_MlQ/viewform"
-WHATSAPP    = "+56 9 9324 5860"
+WHATSAPP    = "https://www.mundovapo.cl"  # Luego reemplaza por: https://wa.me/56993245860
 
 # ===== TECLADOS =====
 def kb_principal():
@@ -31,7 +31,8 @@ def kb_principal():
         [InlineKeyboardButton("📣 Canal", url=CHANNEL_URL),
          InlineKeyboardButton("💬 Chat", url=GROUP_URL)],
         [InlineKeyboardButton("📋 Bases del sorteo", url=SORTEO_URL)],
-        [InlineKeyboardButton("❓ Preguntas frecuentes", callback_data="faq_menu")]
+        [InlineKeyboardButton("❓ Preguntas frecuentes", callback_data="faq_menu")],
+        [InlineKeyboardButton("🟢📱 Atención por WhatsApp", url=WHATSAPP)]
     ])
 
 def kb_faq_menu():
@@ -75,10 +76,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ===== FAQ (callback) =====
 async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Enruta todas las callbacks de FAQ."""
     cq = update.callback_query
     try:
-        await cq.answer()  # quita el spinner
+        await cq.answer()
         data = cq.data or ""
 
         if data == "faq_menu" or data == "faq_back":
@@ -100,7 +100,7 @@ async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "Realizamos envíos a todo Chile mediante empresas de courier.<br>"
                 "Los pedidos se despachan en un máximo de 48 horas hábiles.<br>"
                 "Una vez enviado, recibirás un correo con el número de seguimiento.<br><br>"
-                f"📩 Si no has recibido tu tracking por correo, contáctanos por WhatsApp: {WHATSAPP}"
+                "📩 Si no has recibido tu tracking por correo, contáctanos por WhatsApp."
             )
             await cq.edit_message_text(
                 texto,
@@ -129,7 +129,7 @@ async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
-        # Callback desconocida: vuelve al menú FAQ
+        # Callback desconocida
         await cq.edit_message_text(
             "❓ <b>Preguntas frecuentes</b><br>Selecciona una categoría:",
             reply_markup=kb_faq_menu(),
@@ -138,7 +138,6 @@ async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     except Exception as e:
         log.exception("Error en faq_router (%s): %s", getattr(cq, "data", "?"), e)
-        # Intento de mensaje de error visible al usuario:
         try:
             await cq.edit_message_text(
                 "⚠️ Ocurrió un error al cargar la información. Intenta de nuevo.",
@@ -155,7 +154,6 @@ def main():
 
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    # Un solo router para todas las callbacks relacionadas a FAQ
     app.add_handler(CallbackQueryHandler(faq_router, pattern="^faq"))
 
     log.info("✅ Bot iniciado. Presiona Ctrl+C para detener.")
