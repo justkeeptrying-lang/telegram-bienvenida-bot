@@ -1,19 +1,20 @@
-# bot.py
 # Requisitos: python-telegram-bot==21.4
-# 1) Reemplaza los valores TOKEN, CHANNEL_URL y GROUP_URL
-# 2) En consola: pip install -r requirements.txt
-# 3) Ejecuta: python bot.py
-# 4) Genera tu QR con: https://t.me/TU_BOT?start=bienvenida
+# Ejecutar:
+#   pip install python-telegram-bot==21.4
+#   python bot.py
 
-import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import (
+    ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+)
 
-# === CONFIGURA AQUÍ ===
+# ===== CONFIGURA AQUÍ =====
 TOKEN = "8375588470:AAHuxxlHvHeDcnAYbs5pI39aZoqySIFUDaI"
-CHANNEL_URL = "https://t.me/+jS_YKiiHgcw3OTRh"   # Puedes usar enlace de invitación o @usuario si es público
-GROUP_URL   = "https://t.me/+kL7eSPE27805ZGRh"    # Puedes usar enlace de invitación o @usuario si es público
+CHANNEL_URL = "https://t.me/+jS_YKiiHgcw3OTRh"
+GROUP_URL   = "https://t.me/+kL7eSPE27805ZGRh"
+SORTEO_URL  = "https://www.mundovapo.cl"
 
+# ===== FUNCIÓN PRINCIPAL DE BIENVENIDA =====
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     nombre = update.effective_user.first_name or "amig@"
     
@@ -43,7 +44,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             InlineKeyboardButton("💬 Chat", url=GROUP_URL),
         ],
         [
-            InlineKeyboardButton("📋 Bases del sorteo", url="https://www.mundovapo.cl")
+            InlineKeyboardButton("📋 Bases del sorteo", url=SORTEO_URL)
+        ],
+        [
+            InlineKeyboardButton("❓ Preguntas frecuentes", callback_data="faq")
         ]
     ]
 
@@ -53,12 +57,56 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         disable_web_page_preview=True
     )
 
+# ===== MENÚ FAQ =====
+async def faq(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    kb = [
+        [InlineKeyboardButton("🚚 Envíos", callback_data="faq_envios")],
+        [InlineKeyboardButton("🛠️ Garantías", callback_data="faq_garantias")],
+    ]
+    await update.callback_query.message.reply_text(
+        "❓ Selecciona una categoría para ver más información:",
+        reply_markup=InlineKeyboardMarkup(kb)
+    )
 
+async def faq_respuesta(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    data = update.callback_query.data
+    if data == "faq_envios":
+        texto = (
+            "✈️ **Envíos**\n\n"
+            "Realizamos envíos a todo Chile mediante empresas de courier.\n"
+            "Los pedidos se despachan en un máximo de 48 horas hábiles.\n"
+            "Una vez enviado, recibirás un correo con el número de seguimiento.\n\n"
+            "📩 Si no has recibido tu tracking por correo, contáctanos por WhatsApp: +56 9 9324 5860"
+        )
+    elif data == "faq_garantias":
+        texto = (
+            "🛠️ **Garantías**\n\n"
+            "Cada artículo cuenta con una garantía original del fabricante, la cual está detallada en la descripción del producto.\n\n"
+            "Las garantías no cubren daños causados por mal uso del producto. "
+            "Para solicitar una evaluación, completa el siguiente formulario y espera nuestra respuesta en un máximo de 48 horas hábiles:\n"
+            "🔗 https://docs.google.com/forms/d/e/1FAIpQLSct9QIex5u95sdnaJdXDC4LeB-WBlcdhE7GXoUVh3YvTh_MlQ/viewform\n\n"
+            "📬 Si necesitas más información sobre el estado de tu garantía, puedes contactarnos en cualquier momento al correo soporte@mundovapo.cl, "
+            "a través del chat de nuestra tienda o por WhatsApp."
+        )
+    else:
+        texto = "Selecciona una opción válida."
+
+    await update.callback_query.message.reply_text(
+        texto,
+        disable_web_page_preview=True,
+        parse_mode="Markdown"
+    )
+
+# ===== MAIN =====
 def main():
     if not TOKEN or TOKEN.startswith("PEGA_AQUI"):
         raise RuntimeError("⚠️ Debes pegar tu TOKEN de @BotFather en la variable TOKEN.")
+    
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(faq, pattern="^faq$"))
+    app.add_handler(CallbackQueryHandler(faq_respuesta, pattern="^faq_"))
+    
     print("✅ Bot iniciado. Presiona Ctrl+C para detener.")
     app.run_polling()
 
