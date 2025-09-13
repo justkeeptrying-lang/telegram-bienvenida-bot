@@ -16,7 +16,7 @@ logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s | %(message)s", l
 log = logging.getLogger("mundovapo-bot")
 
 # ===== TU CONFIG =====
-TOKEN = "PEGA_AQUI_EL_TOKEN_NUEVO"
+TOKEN = "8375588470:AAHM8HX5_Z0wq4qHEglmB9sJ6el3DTy5dEM"
 CHANNEL_URL = "https://t.me/+jS_YKiiHgcw3OTRh"
 GROUP_URL   = "https://t.me/+kL7eSPE27805ZGRh"
 SORTEO_URL  = "https://www.mundovapo.cl"
