@@ -14,38 +14,45 @@ TOKEN = "8375588470:AAHuxxlHvHeDcnAYbs5pI39aZoqySIFUDaI"
 CHANNEL_URL = "https://t.me/+jS_YKiiHgcw3OTRh"   # Puedes usar enlace de invitación o @usuario si es público
 GROUP_URL   = "https://t.me/+kL7eSPE27805ZGRh"    # Puedes usar enlace de invitación o @usuario si es público
 
-WELCOME = (
-    "👋 ¡Bienvenid@!\n\n"
-    "Nos alegra mucho tenerte por aquí 🌿\n"
-    "En plataformas como Instagram es muy difícil mantener una cuenta dedicada a vaporizadores, "
-    "por eso decidimos crear esta comunidad exclusiva para quienes confían en nosotros 💚\n\n"
-    "📣 En el canal podrás estar al tanto de:\n"
-    "— Nuevos lanzamientos\n"
-    "— Descuentos especiales\n"
-    "— Sorteos mensuales\n"
-    "— Y muchas sorpresas más\n\n"
-    "💬 En el chat puedes:\n"
-    "— Resolver tus dudas\n"
-    "— Compartir experiencias con otros vapeadores\n"
-    "— Participar de una comunidad respetuosa, solo para mayores de 18 años y libre de spam\n\n"
-    "Gracias por tu compra y por ser parte de este espacio 🤝\n"
-    "¡Esperamos que disfrutes tu estadía!"
-)
-
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Soporta deep-links: t.me/TU_BOT?start=algo  -> context.args = ['algo']
+    nombre = update.effective_user.first_name or "amig@"
+    
+    mensaje = (
+        f"👋 ¡Bienvenid@, {nombre}!\n\n"
+        "Nos alegra mucho tenerte por aquí 🌿\n"
+        "En plataformas como Instagram es muy difícil mantener una cuenta dedicada a vaporizadores, "
+        "por eso decidimos crear esta comunidad exclusiva para quienes confían en nosotros 💚\n\n"
+        "📣 En el canal podrás estar al tanto de:\n"
+        "— Nuevos lanzamientos\n"
+        "— Descuentos especiales\n"
+        "— Sorteos mensuales\n"
+        "— Y muchas sorpresas más\n\n"
+        "💬 En el chat puedes:\n"
+        "— Resolver tus dudas\n"
+        "— Compartir experiencias con otros vapeadores\n"
+        "— Participar de una comunidad respetuosa, solo para mayores de 18 años y libre de spam\n\n"
+        "Gracias por tu compra y por ser parte de este espacio 🤝\n"
+        "¡Esperamos que disfrutes tu estadía!\n\n"
+        "🎁 Recuerda que con tu compra ya estás participando en nuestro sorteo mensual. "
+        "Solo debes revisar las bases y completar el formulario en el siguiente enlace 👇"
+    )
+
     kb = [
         [
             InlineKeyboardButton("📣 Canal", url=CHANNEL_URL),
-            InlineKeyboardButton("💬 Chat",  url=GROUP_URL),
+            InlineKeyboardButton("💬 Chat", url=GROUP_URL),
+        ],
+        [
+            InlineKeyboardButton("📋 Bases del sorteo", url="https://www.mundovapo.cl")
         ]
     ]
+
     await update.message.reply_text(
-        WELCOME,
+        mensaje,
         reply_markup=InlineKeyboardMarkup(kb),
-        disable_web_page_preview=True,
+        disable_web_page_preview=True
     )
+
 
 def main():
     if not TOKEN or TOKEN.startswith("PEGA_AQUI"):
