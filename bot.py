@@ -18,9 +18,9 @@ logging.basicConfig(
 log = logging.getLogger("mundovapo-bot")
 
 # ===== CONFIGURA AQUÍ =====
-TOKEN = "PEGA_AQUI_TU_TOKEN_DE_BOTFATHER"
-CHANNEL_URL = "https://t.me/TU_ENLACE_DE_CANAL"
-GROUP_URL   = "https://t.me/TU_ENLACE_DE_CHAT"
+TOKEN = "8375588470:AAHuxxlHvHeDcnAYbs5pI39aZoqySIFUDaI"
+CHANNEL_URL = "https://t.me/+jS_YKiiHgcw3OTRh"
+GROUP_URL   = "https://t.me/+kL7eSPE27805ZGRh"
 SORTEO_URL  = "https://www.mundovapo.cl"
 FORM_URL    = "https://docs.google.com/forms/d/e/1FAIpQLSct9QIex5u95sdnaJdXDC4LeB-WBlcdhE7GXoUVh3YvTh_MlQ/viewform"
 WHATSAPP    = "https://www.mundovapo.cl"  # Luego reemplaza por: https://wa.me/56993245860
