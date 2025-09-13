@@ -17,13 +17,14 @@ logging.basicConfig(
 )
 log = logging.getLogger("mundovapo-bot")
 
-# ===== CONFIGURA AQUÍ =====
+# ===== CONFIGURA AQUÍ (TU INFO) =====
 TOKEN = "8375588470:AAHuxxlHvHeDcnAYbs5pI39aZoqySIFUDaI"
-CHANNEL_URL = "https://t.me/+jS_YKiiHgcw3OTRh"
-GROUP_URL   = "https://t.me/+kL7eSPE27805ZGRh"
-SORTEO_URL  = "https://www.mundovapo.cl"
+CHANNEL_URL = "https://t.me/+jS_YKiiHgcw3OTRh"   # Enlace de invitación o @usuario si es público
+GROUP_URL   = "https://t.me/+kL7eSPE27805ZGRh"   # Enlace de invitación o @usuario si es público
+SORTEO_URL  = "https://www.mundovapo.cl"        # Página con bases / formulario (temporal)
 FORM_URL    = "https://docs.google.com/forms/d/e/1FAIpQLSct9QIex5u95sdnaJdXDC4LeB-WBlcdhE7GXoUVh3YvTh_MlQ/viewform"
-WHATSAPP    = "https://www.mundovapo.cl"  # Luego reemplaza por: https://wa.me/56993245860
+WHATSAPP_URL = "https://www.mundovapo.cl"       # Cuando esté listo: p.ej. https://wa.me/56993245860
+WHATSAPP_TXT = "+56 9 9324 5860"                # Texto que mostramos en FAQ Envíos
 
 # ===== TECLADOS =====
 def kb_principal():
@@ -32,7 +33,7 @@ def kb_principal():
          InlineKeyboardButton("💬 Chat", url=GROUP_URL)],
         [InlineKeyboardButton("📋 Bases del sorteo", url=SORTEO_URL)],
         [InlineKeyboardButton("❓ Preguntas frecuentes", callback_data="faq_menu")],
-        [InlineKeyboardButton("🟢📱 Atención por WhatsApp", url=WHATSAPP)]
+        [InlineKeyboardButton("🟢📱 Atención por WhatsApp", url=WHATSAPP_URL)]
     ])
 
 def kb_faq_menu():
@@ -74,14 +75,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         log.exception("Error en /start: %s", e)
 
-# ===== FAQ (callback) =====
+# ===== FAQ (router de callbacks) =====
 async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cq = update.callback_query
     try:
         await cq.answer()
         data = cq.data or ""
 
-        if data == "faq_menu" or data == "faq_back":
+        if data in ("faq_menu", "faq_back"):
             texto = (
                 "❓ <b>Preguntas frecuentes</b><br><br>"
                 "Selecciona una categoría para ver más información:"
@@ -100,7 +101,7 @@ async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "Realizamos envíos a todo Chile mediante empresas de courier.<br>"
                 "Los pedidos se despachan en un máximo de 48 horas hábiles.<br>"
                 "Una vez enviado, recibirás un correo con el número de seguimiento.<br><br>"
-                "📩 Si no has recibido tu tracking por correo, contáctanos por WhatsApp."
+                f"📩 Si no has recibido tu tracking por correo, contáctanos por WhatsApp: {WHATSAPP_TXT}"
             )
             await cq.edit_message_text(
                 texto,
@@ -129,13 +130,14 @@ async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
-        # Callback desconocida
+        # Cualquier otra callback: volver al menú FAQ
         await cq.edit_message_text(
             "❓ <b>Preguntas frecuentes</b><br>Selecciona una categoría:",
             reply_markup=kb_faq_menu(),
             disable_web_page_preview=True,
             parse_mode=ParseMode.HTML
         )
+
     except Exception as e:
         log.exception("Error en faq_router (%s): %s", getattr(cq, "data", "?"), e)
         try:
