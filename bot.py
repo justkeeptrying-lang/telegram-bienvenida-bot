@@ -1,28 +1,27 @@
 # Requisitos:
 #   pip install python-telegram-bot==21.4
-# Start local: python bot.py
-# Start en Render: Start Command -> python bot.py
+# Start local:  python bot.py
+# En Render:    Start Command -> python bot.py
 
-import asyncio
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import (
-    Application, ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+    ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 )
 
 # ===== LOGGING =====
 logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s | %(message)s", level=logging.INFO)
 log = logging.getLogger("mundovapo-bot")
 
-# ===== TU CONFIG =====
+# ===== TU CONFIG (pega tu TOKEN NUEVO aquí) =====
 TOKEN = "8375588470:AAHM8HX5_Z0wq4qHEglmB9sJ6el3DTy5dEM"
 CHANNEL_URL = "https://t.me/+jS_YKiiHgcw3OTRh"
 GROUP_URL   = "https://t.me/+kL7eSPE27805ZGRh"
 SORTEO_URL  = "https://www.mundovapo.cl"
 FORM_URL    = "https://docs.google.com/forms/d/e/1FAIpQLSct9QIex5u95sdnaJdXDC4LeB-WBlcdhE7GXoUVh3YvTh_MlQ/viewform"
 WHATSAPP_TXT = "+56 9 9324 5860"
-WHATSAPP_URL = "https://www.mundovapo.cl"  # luego cámbialo a tu wa.me
+WHATSAPP_URL = "https://www.mundovapo.cl"   # Cambia luego por tu wa.me
 
 # ===== TECLADOS =====
 def kb_principal():
@@ -62,15 +61,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cq = update.callback_query
-    await cq.answer()
+    await cq.answer()  # quita el spinner
     data = cq.data or "faq_menu"
 
     if data == "faq_menu":
         texto = "❓ <b>Preguntas frecuentes</b><br><br>Selecciona una categoría:"
-        await cq.edit_message_text(
-            texto, reply_markup=kb_faq_menu(),
-            disable_web_page_preview=True, parse_mode=ParseMode.HTML
-        )
+        await cq.edit_message_text(texto, reply_markup=kb_faq_menu(),
+                                   disable_web_page_preview=True, parse_mode=ParseMode.HTML)
         return
 
     if data == "faq_envios":
@@ -96,23 +93,13 @@ async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
         disable_web_page_preview=True, parse_mode=ParseMode.HTML
     )
 
-# ===== Arranque asíncrono correcto (PTB 21) =====
-async def main():
-    if not TOKEN or TOKEN.startswith("PEGA_AQUI"):
-        raise RuntimeError("⚠️ Pega tu TOKEN nuevo antes de ejecutar.")
-
-    app: Application = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(faq_router, pattern="^faq"))
-
-    # 1) Elimina cualquier webhook previo y descarta updates pendientes
-    await app.bot.delete_webhook(drop_pending_updates=True)
-
-    # 2) Inicializa y arranca polling
-    await app.initialize()
-    await app.start()
-    await app.updater.start_polling()
-    await app.updater.idle()
-
+# ===== MAIN =====
 if __name__ == "__main__":
-    asyncio.run(main())
+    if not TOKEN or TOKEN.startswith("PEGA_AQUI"):
+        raise SystemExit("⚠️ Pega tu TOKEN nuevo antes de ejecutar.")
+    application = ApplicationBuilder().token(TOKEN).build()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CallbackQueryHandler(faq_router, pattern="^faq"))
+    # Ejecuta polling y borra webhook/updates previos automáticamente:
+    application.run_polling(drop_pending_updates=True)
+
