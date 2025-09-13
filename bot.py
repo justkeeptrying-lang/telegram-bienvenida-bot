@@ -1,114 +1,103 @@
-# Requisitos: python-telegram-bot==21.4
-# Ejecutar:
+# Requisitos:
 #   pip install python-telegram-bot==21.4
-#   python bot.py
+# Start (local): python bot.py
 
+import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import (
-    ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
-)
+from telegram.constants import ParseMode
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
-# ===== CONFIGURA AQUÍ =====
+# ===== LOGGING =====
+logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s | %(message)s", level=logging.INFO)
+log = logging.getLogger("mundovapo-bot")
+
+# ===== TU CONFIG =====
 TOKEN = "8375588470:AAHM8HX5_Z0wq4qHEglmB9sJ6el3DTy5dEM"
-CHANNEL_URL = "https://t.me/TU_ENLACE_DE_CANAL"
-GROUP_URL   = "https://t.me/TU_ENLACE_DE_CHAT"
+CHANNEL_URL = "https://t.me/+jS_YKiiHgcw3OTRh"
+GROUP_URL   = "https://t.me/+kL7eSPE27805ZGRh"
 SORTEO_URL  = "https://www.mundovapo.cl"
+FORM_URL    = "https://docs.google.com/forms/d/e/1FAIpQLSct9QIex5u95sdnaJdXDC4LeB-WBlcdhE7GXoUVh3YvTh_MlQ/viewform"
+WHATSAPP_TXT = "+56 9 9324 5860"
+WHATSAPP_URL = "https://www.mundovapo.cl"  # cambia luego a tu wa.me
 
-# ===== FUNCIÓN PRINCIPAL DE BIENVENIDA =====
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    nombre = update.effective_user.first_name or "amig@"
-    
-    mensaje = (
-        f"👋 ¡Bienvenid@, {nombre}!\n\n"
-        "Nos alegra mucho tenerte por aquí 🌿\n"
-        "En plataformas como Instagram es muy difícil mantener una cuenta dedicada a vaporizadores, "
-        "por eso decidimos crear esta comunidad exclusiva para quienes confían en nosotros 💚\n\n"
-        "📣 En el canal podrás estar al tanto de:\n"
-        "— Nuevos lanzamientos\n"
-        "— Descuentos especiales\n"
-        "— Sorteos mensuales\n"
-        "— Y muchas sorpresas más\n\n"
-        "💬 En el chat puedes:\n"
-        "— Resolver tus dudas\n"
-        "— Compartir experiencias con otros vapeadores\n"
-        "— Participar de una comunidad respetuosa, solo para mayores de 18 años y libre de spam\n\n"
-        "Gracias por tu compra y por ser parte de este espacio 🤝\n"
-        "¡Esperamos que disfrutes tu estadía!\n\n"
-        "🎁 Recuerda que con tu compra ya estás participando en nuestro sorteo mensual. "
-        "Solo debes revisar las bases y completar el formulario en el siguiente enlace 👇"
-    )
+def kb_principal():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("📣 Canal", url=CHANNEL_URL),
+         InlineKeyboardButton("💬 Chat", url=GROUP_URL)],
+        [InlineKeyboardButton("📋 Bases del sorteo", url=SORTEO_URL)],
+        [InlineKeyboardButton("❓ Preguntas frecuentes", callback_data="faq_menu")],
+        [InlineKeyboardButton("🟢📱 Atención por WhatsApp", url=WHATSAPP_URL)]
+    ])
 
-    kb = [
-        [
-            InlineKeyboardButton("📣 Canal", url=CHANNEL_URL),
-            InlineKeyboardButton("💬 Chat", url=GROUP_URL),
-        ],
-        [
-            InlineKeyboardButton("📋 Bases del sorteo", url=SORTEO_URL)
-        ],
-        [
-            InlineKeyboardButton("❓ Preguntas frecuentes", callback_data="faq")
-        ]
-    ]
-
-    await update.message.reply_text(
-        mensaje,
-        reply_markup=InlineKeyboardMarkup(kb),
-        disable_web_page_preview=True
-    )
-
-# ===== MENÚ FAQ =====
-async def faq(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    kb = [
+def kb_faq_menu():
+    return InlineKeyboardMarkup([
         [InlineKeyboardButton("🚚 Envíos", callback_data="faq_envios")],
         [InlineKeyboardButton("🛠️ Garantías", callback_data="faq_garantias")],
-    ]
-    await update.callback_query.message.reply_text(
-        "❓ Selecciona una categoría para ver más información:",
-        reply_markup=InlineKeyboardMarkup(kb)
-    )
+        [InlineKeyboardButton("⬅️ Volver", callback_data="faq_menu")]
+    ])
 
-async def faq_respuesta(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    data = update.callback_query.data
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    nombre = update.effective_user.first_name or "amig@"
+    mensaje = (
+        f"👋 ¡Bienvenid@, {nombre}!<br><br>"
+        "Nos alegra mucho tenerte por aquí 🌿<br>"
+        "En plataformas como Instagram es muy difícil mantener una cuenta dedicada a vaporizadores, "
+        "por eso decidimos crear esta comunidad exclusiva para quienes confían en nosotros 💚<br><br>"
+        "📣 <b>En el canal</b> podrás estar al tanto de:<br>"
+        "— Nuevos lanzamientos<br>— Descuentos especiales<br>— Sorteos mensuales<br>— Y más<br><br>"
+        "💬 <b>En el chat</b> puedes resolver dudas y participar en una comunidad respetuosa (+18, sin spam).<br><br>"
+        "Gracias por tu compra 🤝 Ya estás participando en el sorteo mensual. "
+        "Revisa las bases y formulario en el enlace 👇"
+    )
+    await update.message.reply_text(mensaje, reply_markup=kb_principal(),
+                                    disable_web_page_preview=True, parse_mode=ParseMode.HTML)
+
+async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    cq = update.callback_query
+    await cq.answer()
+    data = cq.data or "faq_menu"
+
+    if data == "faq_menu":
+        texto = "❓ <b>Preguntas frecuentes</b><br><br>Selecciona una categoría:"
+        await cq.edit_message_text(texto, reply_markup=kb_faq_menu(),
+                                   disable_web_page_preview=True, parse_mode=ParseMode.HTML)
+        return
+
     if data == "faq_envios":
         texto = (
-            "✈️ **Envíos**\n\n"
-            "Realizamos envíos a todo Chile mediante empresas de courier.\n"
-            "Los pedidos se despachan en un máximo de 48 horas hábiles.\n"
-            "Una vez enviado, recibirás un correo con el número de seguimiento.\n\n"
-            "📩 Si no has recibido tu tracking por correo, contáctanos por WhatsApp: +56 9 9324 5860"
+            "✈️ <b>Envíos</b><br><br>"
+            "Envíos a todo Chile por courier. Despacho en máximo 48 h hábiles.<br>"
+            "Al enviar, te llegará el tracking por correo.<br><br>"
+            f"📩 ¿No recibiste el tracking? Escríbenos por WhatsApp: {WHATSAPP_TXT}"
         )
     elif data == "faq_garantias":
         texto = (
-            "🛠️ **Garantías**\n\n"
-            "Cada artículo cuenta con una garantía original del fabricante, la cual está detallada en la descripción del producto.\n\n"
-            "Las garantías no cubren daños causados por mal uso del producto. "
-            "Para solicitar una evaluación, completa el siguiente formulario y espera nuestra respuesta en un máximo de 48 horas hábiles:\n"
-            "🔗 https://docs.google.com/forms/d/e/1FAIpQLSct9QIex5u95sdnaJdXDC4LeB-WBlcdhE7GXoUVh3YvTh_MlQ/viewform\n\n"
-            "📬 Si necesitas más información sobre el estado de tu garantía, puedes contactarnos en cualquier momento al correo soporte@mundovapo.cl, "
-            "a través del chat de nuestra tienda o por WhatsApp."
+            "🛠️ <b>Garantías</b><br><br>"
+            "Cada artículo tiene garantía original del fabricante (ver descripción del producto).<br><br>"
+            "No cubre daños por mal uso. Para evaluación, completa el formulario y espera respuesta (≤ 48 h hábiles):<br>"
+            f"🔗 <a href=\"{FORM_URL}\">Formulario de garantía</a><br><br>"
+            "📬 Soporte: <a href=\"mailto:soporte@mundovapo.cl\">soporte@mundovapo.cl</a> o WhatsApp."
         )
     else:
         texto = "Selecciona una opción válida."
 
-    await update.callback_query.message.reply_text(
-        texto,
-        disable_web_page_preview=True,
-        parse_mode="Markdown"
-    )
-
-# ===== MAIN =====
-def main():
-    if not TOKEN or TOKEN.startswith("PEGA_AQUI"):
-        raise RuntimeError("⚠️ Debes pegar tu TOKEN de @BotFather en la variable TOKEN.")
-    
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(faq, pattern="^faq$"))
-    app.add_handler(CallbackQueryHandler(faq_respuesta, pattern="^faq_"))
-    
-    print("✅ Bot iniciado. Presiona Ctrl+C para detener.")
-    app.run_polling()
+    await cq.edit_message_text(texto, reply_markup=kb_faq_menu(),
+                               disable_web_page_preview=True, parse_mode=ParseMode.HTML)
 
 if __name__ == "__main__":
-    main()
+    if not TOKEN or TOKEN.startswith("PEGA_AQUI"):
+        raise SystemExit("⚠️ Pega tu TOKEN nuevo antes de ejecutar.")
+    app = ApplicationBuilder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(faq_router, pattern="^faq"))
+    # 👇 Esto elimina cualquier webhook previo y descarta updates pendientes (previene conflictos)
+    app.bot.delete_webhook = app.run_async(app.bot.delete_webhook)  # compat at runtime
+    # run_polling ya borra webhook si usas PTB>=20? Lo hacemos explícito mejor:
+    import asyncio
+    async def _prep_and_run():
+        await app.bot.delete_webhook(drop_pending_updates=True)
+        await app.initialize()
+        await app.start()
+        await app.updater.start_polling()
+        await app.updater.idle()
+    asyncio.run(_prep_and_run())
