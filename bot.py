@@ -9,7 +9,7 @@ from telegram.ext import (
 )
 
 # ===== CONFIGURA AQUÍ =====
-TOKEN = "8375588470:AAHuxxlHvHeDcnAYbs5pI39aZoqySIFUDaI"
+TOKEN = "8375588470:AAHM8HX5_Z0wq4qHEglmB9sJ6el3DTy5dEM"
 CHANNEL_URL = "https://t.me/TU_ENLACE_DE_CANAL"
 GROUP_URL   = "https://t.me/TU_ENLACE_DE_CHAT"
 SORTEO_URL  = "https://www.mundovapo.cl"
