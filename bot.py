@@ -38,12 +38,12 @@ def kb_faq_menu():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🚚 Envíos", callback_data="faq_envios")],
         [InlineKeyboardButton("🛠️ Garantías", callback_data="faq_garantias")],
-        [InlineKeyboardButton("⬅️ Volver", callback_data="faq_menu")]
+        [InlineKeyboardButton("⬅️ Volver al inicio", callback_data="faq_home")]
     ])
 
 # ===== UTIL =====
 async def safe_edit(cq, text, markup):
-    """Edita el mensaje; si el contenido es idéntico, ignora el error."""
+    """Edita el mensaje; si es igual, ignora el error."""
     try:
         await cq.edit_message_text(
             text, reply_markup=markup,
@@ -51,15 +51,13 @@ async def safe_edit(cq, text, markup):
         )
     except BadRequest as e:
         if "message is not modified" in str(e).lower():
-            # Ya estás en ese menú; no pasa nada
             await cq.answer("Ya estás en este menú.", show_alert=False)
         else:
             raise
 
 # ===== Handlers =====
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    nombre = update.effective_user.first_name or "amig@"
-    mensaje = (
+def texto_bienvenida(nombre):
+    return (
         f"👋 ¡Bienvenid@, {nombre}!\n\n"
         "Nos alegra mucho tenerte por aquí 🌿\n"
         "En plataformas como Instagram es muy difícil mantener una cuenta dedicada a vaporizadores, "
@@ -70,8 +68,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Gracias por tu compra 🤝 Ya estás participando en el sorteo mensual.\n"
         "Revisa las bases y formulario en el enlace 👇"
     )
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    nombre = update.effective_user.first_name or "amig@"
     await update.message.reply_text(
-        mensaje, reply_markup=kb_principal(),
+        texto_bienvenida(nombre),
+        reply_markup=kb_principal(),
         disable_web_page_preview=True, parse_mode=ParseMode.HTML
     )
 
@@ -79,6 +81,12 @@ async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cq = update.callback_query
     await cq.answer()
     data = cq.data or "faq_menu"
+    nombre = cq.from_user.first_name or "amig@"
+
+    if data == "faq_home":
+        # ← Vuelve al mensaje de bienvenida
+        await safe_edit(cq, texto_bienvenida(nombre), kb_principal())
+        return
 
     if data == "faq_menu":
         texto = "❓ <b>Preguntas frecuentes</b>\n\nSelecciona una categoría:"
@@ -105,9 +113,6 @@ async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         await safe_edit(cq, texto, kb_faq_menu())
         return
-
-    # Fallback
-    await safe_edit(cq, "❓ <b>Preguntas frecuentes</b>\n\nSelecciona una categoría:", kb_faq_menu())
 
 # ===== MAIN =====
 if __name__ == "__main__":
