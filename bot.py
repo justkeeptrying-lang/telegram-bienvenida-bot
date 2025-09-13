@@ -1,25 +1,30 @@
 # Requisitos:
 #   pip install python-telegram-bot==21.4
-# Start (local): python bot.py
+# Start local: python bot.py
+# Start en Render: Start Command -> python bot.py
 
+import asyncio
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.ext import (
+    Application, ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+)
 
 # ===== LOGGING =====
 logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s | %(message)s", level=logging.INFO)
 log = logging.getLogger("mundovapo-bot")
 
 # ===== TU CONFIG =====
-TOKEN = "8375588470:AAHM8HX5_Z0wq4qHEglmB9sJ6el3DTy5dEM"
+TOKEN = "PEGA_AQUI_EL_TOKEN_NUEVO"
 CHANNEL_URL = "https://t.me/+jS_YKiiHgcw3OTRh"
 GROUP_URL   = "https://t.me/+kL7eSPE27805ZGRh"
 SORTEO_URL  = "https://www.mundovapo.cl"
 FORM_URL    = "https://docs.google.com/forms/d/e/1FAIpQLSct9QIex5u95sdnaJdXDC4LeB-WBlcdhE7GXoUVh3YvTh_MlQ/viewform"
 WHATSAPP_TXT = "+56 9 9324 5860"
-WHATSAPP_URL = "https://www.mundovapo.cl"  # cambia luego a tu wa.me
+WHATSAPP_URL = "https://www.mundovapo.cl"  # luego cámbialo a tu wa.me
 
+# ===== TECLADOS =====
 def kb_principal():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("📣 Canal", url=CHANNEL_URL),
@@ -36,6 +41,7 @@ def kb_faq_menu():
         [InlineKeyboardButton("⬅️ Volver", callback_data="faq_menu")]
     ])
 
+# ===== Handlers =====
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     nombre = update.effective_user.first_name or "amig@"
     mensaje = (
@@ -49,8 +55,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Gracias por tu compra 🤝 Ya estás participando en el sorteo mensual. "
         "Revisa las bases y formulario en el enlace 👇"
     )
-    await update.message.reply_text(mensaje, reply_markup=kb_principal(),
-                                    disable_web_page_preview=True, parse_mode=ParseMode.HTML)
+    await update.message.reply_text(
+        mensaje, reply_markup=kb_principal(),
+        disable_web_page_preview=True, parse_mode=ParseMode.HTML
+    )
 
 async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cq = update.callback_query
@@ -59,8 +67,10 @@ async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "faq_menu":
         texto = "❓ <b>Preguntas frecuentes</b><br><br>Selecciona una categoría:"
-        await cq.edit_message_text(texto, reply_markup=kb_faq_menu(),
-                                   disable_web_page_preview=True, parse_mode=ParseMode.HTML)
+        await cq.edit_message_text(
+            texto, reply_markup=kb_faq_menu(),
+            disable_web_page_preview=True, parse_mode=ParseMode.HTML
+        )
         return
 
     if data == "faq_envios":
@@ -81,23 +91,28 @@ async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         texto = "Selecciona una opción válida."
 
-    await cq.edit_message_text(texto, reply_markup=kb_faq_menu(),
-                               disable_web_page_preview=True, parse_mode=ParseMode.HTML)
+    await cq.edit_message_text(
+        texto, reply_markup=kb_faq_menu(),
+        disable_web_page_preview=True, parse_mode=ParseMode.HTML
+    )
 
-if __name__ == "__main__":
+# ===== Arranque asíncrono correcto (PTB 21) =====
+async def main():
     if not TOKEN or TOKEN.startswith("PEGA_AQUI"):
-        raise SystemExit("⚠️ Pega tu TOKEN nuevo antes de ejecutar.")
-    app = ApplicationBuilder().token(TOKEN).build()
+        raise RuntimeError("⚠️ Pega tu TOKEN nuevo antes de ejecutar.")
+
+    app: Application = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(faq_router, pattern="^faq"))
-    # 👇 Esto elimina cualquier webhook previo y descarta updates pendientes (previene conflictos)
-    app.bot.delete_webhook = app.run_async(app.bot.delete_webhook)  # compat at runtime
-    # run_polling ya borra webhook si usas PTB>=20? Lo hacemos explícito mejor:
-    import asyncio
-    async def _prep_and_run():
-        await app.bot.delete_webhook(drop_pending_updates=True)
-        await app.initialize()
-        await app.start()
-        await app.updater.start_polling()
-        await app.updater.idle()
-    asyncio.run(_prep_and_run())
+
+    # 1) Elimina cualquier webhook previo y descarta updates pendientes
+    await app.bot.delete_webhook(drop_pending_updates=True)
+
+    # 2) Inicializa y arranca polling
+    await app.initialize()
+    await app.start()
+    await app.updater.start_polling()
+    await app.updater.idle()
+
+if __name__ == "__main__":
+    asyncio.run(main())
