@@ -6,6 +6,7 @@
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
+from telegram.error import BadRequest
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 )
@@ -14,7 +15,7 @@ from telegram.ext import (
 logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s | %(message)s", level=logging.INFO)
 log = logging.getLogger("mundovapo-bot")
 
-# ===== TU CONFIG (usa tu token NUEVO) =====
+# ===== CONFIG =====
 TOKEN = "8375588470:AAHM8HX5_Z0wq4qHEglmB9sJ6el3DTy5dEM"
 CHANNEL_URL = "https://t.me/+jS_YKiiHgcw3OTRh"
 GROUP_URL   = "https://t.me/+kL7eSPE27805ZGRh"
@@ -39,6 +40,21 @@ def kb_faq_menu():
         [InlineKeyboardButton("🛠️ Garantías", callback_data="faq_garantias")],
         [InlineKeyboardButton("⬅️ Volver", callback_data="faq_menu")]
     ])
+
+# ===== UTIL =====
+async def safe_edit(cq, text, markup):
+    """Edita el mensaje; si el contenido es idéntico, ignora el error."""
+    try:
+        await cq.edit_message_text(
+            text, reply_markup=markup,
+            disable_web_page_preview=True, parse_mode=ParseMode.HTML
+        )
+    except BadRequest as e:
+        if "message is not modified" in str(e).lower():
+            # Ya estás en ese menú; no pasa nada
+            await cq.answer("Ya estás en este menú.", show_alert=False)
+        else:
+            raise
 
 # ===== Handlers =====
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -66,8 +82,7 @@ async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "faq_menu":
         texto = "❓ <b>Preguntas frecuentes</b>\n\nSelecciona una categoría:"
-        await cq.edit_message_text(texto, reply_markup=kb_faq_menu(),
-                                   disable_web_page_preview=True, parse_mode=ParseMode.HTML)
+        await safe_edit(cq, texto, kb_faq_menu())
         return
 
     if data == "faq_envios":
@@ -77,7 +92,10 @@ async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Al enviar, te llegará el tracking por correo.\n\n"
             f"📩 ¿No recibiste el tracking? Escríbenos por WhatsApp: {WHATSAPP_TXT}"
         )
-    elif data == "faq_garantias":
+        await safe_edit(cq, texto, kb_faq_menu())
+        return
+
+    if data == "faq_garantias":
         texto = (
             "🛠️ <b>Garantías</b>\n\n"
             "Cada artículo tiene garantía original del fabricante (ver descripción del producto).\n\n"
@@ -85,13 +103,11 @@ async def faq_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"🔗 <a href=\"{FORM_URL}\">Formulario de garantía</a>\n\n"
             "📬 Soporte: <a href=\"mailto:soporte@mundovapo.cl\">soporte@mundovapo.cl</a> o WhatsApp."
         )
-    else:
-        texto = "Selecciona una opción válida."
+        await safe_edit(cq, texto, kb_faq_menu())
+        return
 
-    await cq.edit_message_text(
-        texto, reply_markup=kb_faq_menu(),
-        disable_web_page_preview=True, parse_mode=ParseMode.HTML
-    )
+    # Fallback
+    await safe_edit(cq, "❓ <b>Preguntas frecuentes</b>\n\nSelecciona una categoría:", kb_faq_menu())
 
 # ===== MAIN =====
 if __name__ == "__main__":
@@ -100,6 +116,6 @@ if __name__ == "__main__":
     application = ApplicationBuilder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(faq_router, pattern="^faq"))
-    # Ejecuta polling y limpia webhook/updates previos:
     application.run_polling(drop_pending_updates=True)
+
 
